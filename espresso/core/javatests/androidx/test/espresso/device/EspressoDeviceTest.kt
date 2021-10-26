@@ -16,15 +16,31 @@
 
 package androidx.test.espresso.device
 
+import android.content.res.Configuration
+import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.device.action.ScreenOrientation
 import androidx.test.espresso.device.action.setFlatMode
+import androidx.test.espresso.device.action.setScreenOrientation
+import androidx.test.espresso.matcher.ViewMatchers.withId
+import androidx.test.espresso.matcher.ViewMatchers.withText
+import androidx.test.ext.junit.rules.ActivityScenarioRule
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.ui.app.LargeViewActivity
+import androidx.test.ui.app.R
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class EspressoDeviceTest {
+  @get:Rule
+  val activityScenario: ActivityScenarioRule<LargeViewActivity> =
+    ActivityScenarioRule(LargeViewActivity::class.java)
 
   @Test
   fun setFlatModeWithPerform_returnsDeviceInteraction() {
@@ -41,10 +57,40 @@ class EspressoDeviceTest {
   }
 
   @Test
-  fun setScreenOrientation_returnsDeviceInteraction() {
-    val deviceInteraction =
-      EspressoDevice.onDevice().setScreenOrientation(ScreenOrientation.PORTRAIT)
+  fun onDevice_setScreenOrientationToLandscape() {
+    EspressoDevice.onDevice().perform(setScreenOrientation(ScreenOrientation.LANDSCAPE))
 
-    assertTrue(deviceInteraction is DeviceInteraction)
+    assertEquals(
+      Configuration.ORIENTATION_LANDSCAPE,
+      InstrumentationRegistry.getInstrumentation()
+        .getTargetContext()
+        .getResources()
+        .getConfiguration()
+        .orientation
+    )
+
+    // Interact with activity.
+    onView(withId(R.id.large_view)).check(matches(withText("large view")))
+    onView(withId(R.id.large_view)).perform(click())
+    onView(withId(R.id.large_view)).check(matches(withText("Ouch!!!")))
+  }
+
+  @Test
+  fun onDevice_setScreenOrientationToPortrait() {
+    EspressoDevice.onDevice().perform(setScreenOrientation(ScreenOrientation.PORTRAIT))
+
+    assertEquals(
+      Configuration.ORIENTATION_PORTRAIT,
+      InstrumentationRegistry.getInstrumentation()
+        .getTargetContext()
+        .getResources()
+        .getConfiguration()
+        .orientation
+    )
+
+    // Interact with activity.
+    onView(withId(R.id.large_view)).check(matches(withText("large view")))
+    onView(withId(R.id.large_view)).perform(click())
+    onView(withId(R.id.large_view)).check(matches(withText("Ouch!!!")))
   }
 }
