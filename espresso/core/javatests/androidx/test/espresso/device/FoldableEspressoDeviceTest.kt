@@ -18,21 +18,19 @@ package androidx.test.espresso.device
 
 import androidx.test.espresso.device.action.ScreenOrientation
 import androidx.test.espresso.device.action.setFlatMode
-import androidx.test.espresso.device.controller.DeviceControllerOperationException
-import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
-class EspressoDeviceTest {
+class FoldableEspressoDeviceTest {
 
   @Test
-  fun setFlatModeOnNonFoldableDevice_throwsException() {
-    assertThrows(DeviceControllerOperationException::class.java) {
-      EspressoDevice.onDevice().setFlatMode()
-    }
+  fun setFlatMode_returnsDeviceInteraction() {
+    val deviceInteraction = EspressoDevice.onDevice().perform(setFlatMode())
+
+    assertTrue(deviceInteraction is DeviceInteraction)
   }
 
   @Test

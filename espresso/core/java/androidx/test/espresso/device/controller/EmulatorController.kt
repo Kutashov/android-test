@@ -21,6 +21,8 @@ import com.android.emulator.control.EmulatorControllerGrpc
 import com.android.emulator.control.ParameterValue
 import com.android.emulator.control.PhysicalModelValue
 import com.android.emulator.control.PhysicalModelValue.PhysicalType
+import com.android.emulator.control.Posture
+import com.android.emulator.control.Posture.PostureValue
 import io.grpc.StatusRuntimeException
 import javax.inject.Inject
 
@@ -43,7 +45,24 @@ constructor(
       )
     }
 
-    // TODO(b/200863559) Set the connected test device to the provided device mode.
+    val postureValue: PostureValue =
+      when (deviceMode) {
+        DeviceMode.FLAT.mode -> PostureValue.POSTURE_OPENED
+        DeviceMode.TABLETOP.mode -> PostureValue.POSTURE_HALF_OPENED
+        DeviceMode.BOOK.mode -> PostureValue.POSTURE_HALF_OPENED
+        else -> PostureValue.POSTURE_UNKNOWN
+      }
+    val posture: Posture = Posture.newBuilder().setValue(postureValue).build()
+    try {
+      val result = emulatorControllerStub.setPosture(posture)
+    } catch (e: StatusRuntimeException) {
+      throw DeviceControllerOperationException(
+        "Failed to set device mode. Please make sure the connected Emulator is foldable.",
+        e
+      )
+    }
+
+    // TODO(b/200863559) Handle hinge position if deviceMode is BOOK or TABLETOP.
   }
 
   override fun setScreenOrientation(orientation: Int) {
